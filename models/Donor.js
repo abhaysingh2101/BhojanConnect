@@ -5,6 +5,7 @@ const donorSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String },
+  aadhaarNumber: { type: String, required: true, unique: true },
 }, { timestamps: true });
 
 const Donor = mongoose.model("Donor", donorSchema);
