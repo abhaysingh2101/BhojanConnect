@@ -8,19 +8,19 @@ const donateFood = async (req, res) => {
   try {
     const { donorId, ngoId, quantity } = req.body;
 
-    // 1️⃣ Check for missing fields
+    // Check for missing fields
     if (!donorId || !ngoId || !quantity) {
       return res.status(400).json({
         error: "All fields are required: donorId, ngoId, quantity",
       });
     }
 
-    // 2️⃣ Validate ObjectId formats
+    // Validate ObjectId formats
     if (!mongoose.Types.ObjectId.isValid(donorId) || !mongoose.Types.ObjectId.isValid(ngoId)) {
       return res.status(400).json({ error: "Invalid donorId or ngoId format" });
     }
 
-    // 3️⃣ Verify donor and NGO exist
+    //  Verify donor and NGO exist
     const donor = await Donor.findById(donorId);
     const ngo = await NGO.findById(ngoId);
 
@@ -28,12 +28,12 @@ const donateFood = async (req, res) => {
       return res.status(404).json({ error: "Donor or NGO not found" });
     }
 
-    // 4️⃣ Validate quantity
+    // Validate quantity
     if (quantity <= 0) {
       return res.status(400).json({ error: "Quantity must be greater than 0" });
     }
 
-    // 5️⃣ Create new donation transaction
+    // Create new donation transaction
     const transaction = new DonorTransaction({
       donorId,
       ngoId,
@@ -42,7 +42,7 @@ const donateFood = async (req, res) => {
 
     await transaction.save();
 
-    // 6️⃣ Update NGO’s available plates count
+    //Update NGO’s available plates count
     ngo.platesAvailable += quantity;
     await ngo.save();
 
