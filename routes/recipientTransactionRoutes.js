@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { bookFood, takeFood, listRecipientsBooked } = require("../controllers/recipientTransactionController");
-const auth = require("../middlewares/auth"); 
+const recipientTransactionController = require("../controllers/recipientTransactionController");
 
-router.post("/book", bookFood);
+// Book food (plates not reduced)
+router.post("/book", recipientTransactionController.bookFood);
 
+// Take food (plates reduced)
+router.post("/take", recipientTransactionController.takeFood);
 
-router.post("/take",  takeFood);
-
-router.get("/list/:ngoId", listRecipientsBooked);
+// Get all recipient transactions
+router.get("/", recipientTransactionController.getAllRecipientTransactions);
 
 module.exports = router;
