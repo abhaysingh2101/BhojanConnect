@@ -4,25 +4,39 @@ const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
-// Register donor
+// Register Donor
 const registerDonor = async (req, res) => {
   try {
-    const { username, email, password, phone } = req.body;
+    const { username, email, password, phone, aadhaarNumber } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: "Username, email, and password are required" });
+    // Validation
+    if (!username || !email || !password || !aadhaarNumber) {
+      return res.status(400).json({ error: "Username, email, password, and Aadhaar number are required" });
     }
 
-    const existing = await Donor.findOne({ email });
-    if (existing) return res.status(400).json({ error: "Email already exists" });
+    // Validate Aadhaar number (12 digits)
+    const aadhaarRegex = /^\d{12}$/;
+    if (!aadhaarRegex.test(aadhaarNumber)) {
+      return res.status(400).json({ error: "Aadhaar number must be a valid 12-digit number" });
+    }
 
+    // Check for duplicates
+    const existingEmail = await Donor.findOne({ email });
+    if (existingEmail) return res.status(400).json({ error: "Email already exists" });
+
+    const existingAadhaar = await Donor.findOne({ aadhaarNumber });
+    if (existingAadhaar) return res.status(400).json({ error: "Aadhaar number already registered" });
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create donor
     const newDonor = new Donor({
       username,
       email,
       password: hashedPassword,
       phone,
+      aadhaarNumber,
     });
 
     await newDonor.save();
@@ -32,15 +46,19 @@ const registerDonor = async (req, res) => {
       username: newDonor.username,
       email: newDonor.email,
       phone: newDonor.phone,
+      aadhaarNumber: newDonor.aadhaarNumber,
     };
 
-    res.status(201).json({ message: "Donor registered successfully", donor: donorResponse });
+    res.status(201).json({
+      message: "Donor registered successfully",
+      donor: donorResponse,
+    });
   } catch (err) {
     res.status(500).json({ error: "Server error", details: err.message });
   }
 };
 
-// Login donor
+// Login Donor
 const loginDonor = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -64,6 +82,7 @@ const loginDonor = async (req, res) => {
         username: donor.username,
         email: donor.email,
         phone: donor.phone,
+        aadhaarNumber: donor.aadhaarNumber,
       },
     });
   } catch (err) {
@@ -71,7 +90,7 @@ const loginDonor = async (req, res) => {
   }
 };
 
-// Get donor profile
+// Get Donor Profile
 const getDonorProfile = async (req, res) => {
   try {
     const donor = await Donor.findById(req.userId).select("-password");
